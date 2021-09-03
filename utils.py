@@ -10,6 +10,7 @@ import os
 import random
 
 import django
+from django.core.exceptions import ObjectDoesNotExist
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "project.settings")
 django.setup()
@@ -43,7 +44,10 @@ def create_commendation(first_and_last_name, subjects_name):
 
     commendation_content = random.choice(commendations_contents)
 
-    ivan_pupil = Schoolkid.objects.filter(full_name__contains=first_and_last_name).first()
+    try:
+        pupil = Schoolkid.objects.get(full_name__contains=first_and_last_name)
+    except ObjectDoesNotExist:
+        return "Object doesn't find or finds more than one object"
 
     lessons_of_concrete_classroom = Lesson.objects.filter(year_of_study=6, group_letter='А')
     lessons_of_concrete_classroom_by_subject = lessons_of_concrete_classroom.filter(subject__title=subjects_name)
@@ -53,12 +57,12 @@ def create_commendation(first_and_last_name, subjects_name):
     commendation = Commendation.objects.create(
         text=commendation_content,
         created=first_comer_lesson.date,
-        schoolkid=ivan_pupil,
+        schoolkid=pupil,
         subject=first_comer_lesson.subject,
         teacher=first_comer_lesson.teacher
     )
 
-    return f'Created commendation for {ivan_pupil.full_name} by {subjects_name} to {first_comer_lesson.date}'
+    return f'Created commendation for {pupil.full_name} by {subjects_name} to {first_comer_lesson.date}'
 
 
 def main():
