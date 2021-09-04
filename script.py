@@ -2,7 +2,6 @@ import os
 import random
 
 import django
-# from django.core.exceptions import ObjectDoesNotExist
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "project.settings")
 django.setup()
@@ -15,10 +14,18 @@ from datacenter.models import Commendation, \
 def get_pupil(first_and_last_name):
     try:
         pupil = Schoolkid.objects.get(full_name__contains=first_and_last_name)
-    except Schoolkid.DoesNotExist:
-        return f'Ошибка! Проверьте фамилию и имя ({first_and_last_name}) на правописание'
-    except Schoolkid.MultipleObjectsReturned:
-        return f"Ошибка! Точно применять скрипт для него: '{first_and_last_name}'?"
+    except Schoolkid.DoesNotExist as e:
+        msg = (
+            f'Ошибка! '
+            f"Проверьте фамилию и имя '{first_and_last_name}' на правописание"
+        )
+        raise ValueError(msg) from e
+    except Schoolkid.MultipleObjectsReturned as e:
+        msg = (
+            f'Ошибка! '
+            f"Точно применять скрипт для него: '{first_and_last_name}'?"
+        )
+        raise ValueError(msg) from e
 
     return pupil
 
@@ -48,23 +55,29 @@ def create_commendation(first_and_last_name, subjects_name):
     commendation_content = random.choice(commendations_contents)
 
     pupil = get_pupil(first_and_last_name)
-    lessons_of_concrete_classroom = Lesson.objects.filter(year_of_study=6, group_letter='А')
-    lessons_of_concrete_classroom_by_subject = lessons_of_concrete_classroom.filter(subject__title=subjects_name)
+    lessons_of_concrete_classroom = (Lesson.objects
+                                     .filter(year_of_study=6,
+                                             group_letter='А'))
+    lessons_of_concrete_classroom_by_subject = (lessons_of_concrete_classroom
+                                                .filter(subject__title=subjects_name))
 
     if not lessons_of_concrete_classroom_by_subject:
-        return 'Ошибка! Проверь название предмета'
+        raise ValueError('Ошибка! Проверьте название предмета')
 
-    first_comer_lesson = lessons_of_concrete_classroom_by_subject.order_by('?').first()
+    first_comer_lesson = (lessons_of_concrete_classroom_by_subject
+                          .order_by('?').first())
 
-    commendation = Commendation.objects.create(
-        text=commendation_content,
-        created=first_comer_lesson.date,
-        schoolkid=pupil,
-        subject=first_comer_lesson.subject,
-        teacher=first_comer_lesson.teacher
+    commendation = Commendation.objects.create(text=commendation_content,
+                                               created=first_comer_lesson.date,
+                                               schoolkid=pupil,
+                                               subject=first_comer_lesson.subject,
+                                               teacher=first_comer_lesson.teacher)
+
+    msg = (
+        f'Создана похвала {commendation} по предмету: '
+        f'{subjects_name} {first_comer_lesson.date}'
     )
-
-    return f'Создана похвала для: {pupil.full_name} по предмету: {subjects_name} {first_comer_lesson.date}'
+    return msg
 
 
 def main():
@@ -73,12 +86,9 @@ def main():
     subject = 'Музыка'
 
     schoolkid = get_pupil(first_and_last_name)
-    if isinstance(schoolkid, Schoolkid):
-        print(fix_marks(schoolkid))
-        print(remove_chastisements(schoolkid))
-    else:
-        print(schoolkid)  # Сообщение об ошибке
 
+    print(fix_marks(schoolkid))
+    print(remove_chastisements(schoolkid))
     print(create_commendation(first_and_last_name, subject))
 
 
