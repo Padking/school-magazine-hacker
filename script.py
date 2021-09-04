@@ -3,7 +3,7 @@ import random
 
 import django
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "project.settings")
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'project.settings')
 django.setup()
 
 from datacenter.models import Commendation, \
