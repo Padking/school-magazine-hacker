@@ -16,18 +16,10 @@ from datacenter.models import (
 def get_schoolkid(last_name):
     try:
         schoolkid = Schoolkid.objects.get(full_name__contains=last_name)
-    except Schoolkid.DoesNotExist as e:
-        msg = (
-            'Ошибка! '
-            f"Проверьте фамилию и имя '{last_name}' на правописание"
-        )
-        raise ValueError(msg) from e
-    except Schoolkid.MultipleObjectsReturned as e:
-        msg = (
-            'Ошибка! '
-            f"Точно применять скрипт для него: '{last_name}'?"
-        )
-        raise ValueError(msg) from e
+    except Schoolkid.DoesNotExist:
+        raise
+    except Schoolkid.MultipleObjectsReturned:
+        raise
 
     return schoolkid
 
@@ -76,11 +68,11 @@ def create_commendation(last_name, subjects_name):
                                                subject=first_comer_lesson.subject,
                                                teacher=first_comer_lesson.teacher)
 
-    msg = (
+    exception_msg = (
         f'Создана похвала {commendation} по предмету: '
         f'{subjects_name} {first_comer_lesson.date}'
     )
-    return msg
+    return exception_msg
 
 
 def main():
