@@ -6,9 +6,11 @@ import django
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'project.settings')
 django.setup()
 
-from datacenter.models import Commendation, \
-                              Lesson, \
-                              Schoolkid
+from datacenter.models import (
+    Commendation,
+    Lesson,
+    Schoolkid
+)
 
 
 def get_pupil(first_and_last_name):
@@ -16,13 +18,13 @@ def get_pupil(first_and_last_name):
         pupil = Schoolkid.objects.get(full_name__contains=first_and_last_name)
     except Schoolkid.DoesNotExist as e:
         msg = (
-            f'Ошибка! '
+            'Ошибка! '
             f"Проверьте фамилию и имя '{first_and_last_name}' на правописание"
         )
         raise ValueError(msg) from e
     except Schoolkid.MultipleObjectsReturned as e:
         msg = (
-            f'Ошибка! '
+            'Ошибка! '
             f"Точно применять скрипт для него: '{first_and_last_name}'?"
         )
         raise ValueError(msg) from e
