@@ -13,39 +13,40 @@ from datacenter.models import (
 )
 
 
-def get_pupil(first_and_last_name):
+def get_schoolkid(last_name):
     try:
-        pupil = Schoolkid.objects.get(full_name__contains=first_and_last_name)
+        schoolkid = Schoolkid.objects.get(full_name__contains=last_name)
     except Schoolkid.DoesNotExist as e:
         msg = (
             'Ошибка! '
-            f"Проверьте фамилию и имя '{first_and_last_name}' на правописание"
+            f"Проверьте фамилию и имя '{last_name}' на правописание"
         )
         raise ValueError(msg) from e
     except Schoolkid.MultipleObjectsReturned as e:
         msg = (
             'Ошибка! '
-            f"Точно применять скрипт для него: '{first_and_last_name}'?"
+            f"Точно применять скрипт для него: '{last_name}'?"
         )
         raise ValueError(msg) from e
 
-    return pupil
+    return schoolkid
 
 
 def fix_marks(schoolkid):
-    exhaust = schoolkid.mark_set.filter(points__in=[2, 3]).update(points=5)
+    updated_marks_count = (schoolkid.mark_set.filter(points__in=[2, 3])
+                           .update(points=5))
 
-    return f'Кол-во обновлённых записей в БД: {exhaust}'
+    return f'Кол-во обновлённых оценок в БД: {updated_marks_count}'
 
 
 def remove_chastisements(schoolkid):
-    chastisements_by_pupil = schoolkid.chastisement_set.all()
-    exhaust = chastisements_by_pupil.delete()
+    chastisements_by_schoolkid = schoolkid.chastisement_set.all()
+    deleted_chastisements_count = chastisements_by_schoolkid.delete()
 
-    return f'Следующие записи удалены из БД: {exhaust}'
+    return f'Следующие замечания удалены из БД: {deleted_chastisements_count}'
 
 
-def create_commendation(first_and_last_name, subjects_name):
+def create_commendation(last_name, subjects_name):
     commendations_contents = [
         'Я поражён!',
         'Уже существенно лучше!',
@@ -56,7 +57,7 @@ def create_commendation(first_and_last_name, subjects_name):
 
     commendation_content = random.choice(commendations_contents)
 
-    pupil = get_pupil(first_and_last_name)
+    schoolkid = get_schoolkid(last_name)
     lessons_of_concrete_classroom = (Lesson.objects
                                      .filter(year_of_study=6,
                                              group_letter='А'))
@@ -71,7 +72,7 @@ def create_commendation(first_and_last_name, subjects_name):
 
     commendation = Commendation.objects.create(text=commendation_content,
                                                created=first_comer_lesson.date,
-                                               schoolkid=pupil,
+                                               schoolkid=schoolkid,
                                                subject=first_comer_lesson.subject,
                                                teacher=first_comer_lesson.teacher)
 
@@ -84,14 +85,14 @@ def create_commendation(first_and_last_name, subjects_name):
 
 def main():
 
-    first_and_last_name = 'Фролов Иван'
+    last_name = 'Фролов Иван'
     subject = 'Музыка'
 
-    schoolkid = get_pupil(first_and_last_name)
+    schoolkid = get_schoolkid(last_name)
 
     print(fix_marks(schoolkid))
     print(remove_chastisements(schoolkid))
-    print(create_commendation(first_and_last_name, subject))
+    print(create_commendation(last_name, subject))
 
 
 if __name__ == '__main__':
