@@ -38,7 +38,7 @@ def remove_chastisements(schoolkid):
     return f'Следующие замечания удалены из БД: {deleted_chastisements_count}'
 
 
-def create_commendation(last_name, subjects_name):
+def create_commendation(schoolkid, subjects_name):
     commendations_contents = [
         'Я поражён!',
         'Уже существенно лучше!',
@@ -49,7 +49,6 @@ def create_commendation(last_name, subjects_name):
 
     commendation_content = random.choice(commendations_contents)
 
-    schoolkid = get_schoolkid(last_name)
     lessons_of_concrete_classroom = (Lesson.objects
                                      .filter(year_of_study=6,
                                              group_letter='А'))
@@ -84,7 +83,7 @@ def main():
 
     print(fix_marks(schoolkid))
     print(remove_chastisements(schoolkid))
-    print(create_commendation(last_name, subject))
+    print(create_commendation(schoolkid, subject))
 
 
 if __name__ == '__main__':
