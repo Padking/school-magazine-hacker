@@ -17,9 +17,17 @@ def get_schoolkid(last_name):
     try:
         schoolkid = Schoolkid.objects.get(full_name__contains=last_name)
     except Schoolkid.DoesNotExist:
-        raise
+        invalid_last_name_msg = (
+            'Ошибка! '
+            f"Проверьте фамилию и имя '{last_name}' на правописание"
+        )
+        return invalid_last_name_msg
     except Schoolkid.MultipleObjectsReturned:
-        raise
+        invalid_last_name_msg = (
+            'Ошибка! '
+            f"Точно применять скрипт для него: '{last_name}'?"
+        )
+        return invalid_last_name_msg
 
     return schoolkid
 
@@ -33,9 +41,9 @@ def fix_marks(schoolkid):
 
 def remove_chastisements(schoolkid):
     chastisements_by_schoolkid = schoolkid.chastisement_set.all()
-    deleted_chastisements_count = chastisements_by_schoolkid.delete()
+    deleted_chastisements = chastisements_by_schoolkid.delete()
 
-    return f'Следующие замечания удалены из БД: {deleted_chastisements_count}'
+    return f'Следующие замечания удалены из БД: {deleted_chastisements}'
 
 
 def create_commendation(schoolkid, subjects_name):
@@ -56,7 +64,7 @@ def create_commendation(schoolkid, subjects_name):
                                                 .filter(subject__title=subjects_name))
 
     if not lessons_of_concrete_classroom_by_subject:
-        raise ValueError('Ошибка! Проверьте название предмета')
+        return 'Ошибка! Проверьте название предмета'
 
     first_comer_lesson = (lessons_of_concrete_classroom_by_subject
                           .order_by('?').first())
@@ -67,11 +75,11 @@ def create_commendation(schoolkid, subjects_name):
                                                subject=first_comer_lesson.subject,
                                                teacher=first_comer_lesson.teacher)
 
-    exception_msg = (
+    success_created_commendation_msg = (
         f'Создана похвала {commendation} по предмету: '
         f'{subjects_name} {first_comer_lesson.date}'
     )
-    return exception_msg
+    return success_created_commendation_msg
 
 
 def main():
@@ -81,9 +89,12 @@ def main():
 
     schoolkid = get_schoolkid(last_name)
 
-    print(fix_marks(schoolkid))
-    print(remove_chastisements(schoolkid))
-    print(create_commendation(schoolkid, subject))
+    if isinstance(schoolkid, Schoolkid):
+        print(fix_marks(schoolkid))
+        print(remove_chastisements(schoolkid))
+        print(create_commendation(schoolkid, subject))
+    else:
+        print(schoolkid)  # Сообщение об ошибке
 
 
 if __name__ == '__main__':
