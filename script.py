@@ -1,3 +1,4 @@
+import argparse
 import os
 import random
 
@@ -13,21 +14,36 @@ from datacenter.models import (
 )
 
 
-def get_schoolkid(last_name):
+def create_parser():
+    description = (
+        'Исправляет оценки, '
+        'удаляет замечания, '
+        'создаёт похвалу.'
+    )
+    help_to_full_name_argument = 'Фамилия и имя друга, например, Фролов Иван'
+    help_to_subject_argument = 'Название предмета для похвалы, например, Математика'
+    parser = argparse.ArgumentParser(description=description)
+    parser.add_argument('full_name', help=help_to_full_name_argument, nargs=2)
+    parser.add_argument('subject', help=help_to_subject_argument, nargs=1)
+
+    return parser
+
+
+def get_schoolkid(full_name):
     try:
-        schoolkid = Schoolkid.objects.get(full_name__contains=last_name)
+        schoolkid = Schoolkid.objects.get(full_name__contains=full_name)
     except Schoolkid.DoesNotExist:
-        invalid_last_name_msg = (
+        invalid_full_name_msg = (
             'Ошибка! '
-            f"Проверьте фамилию и имя '{last_name}' на правописание"
+            f"Проверьте фамилию и имя '{full_name}' на правописание"
         )
-        return invalid_last_name_msg
+        return invalid_full_name_msg
     except Schoolkid.MultipleObjectsReturned:
-        invalid_last_name_msg = (
+        invalid_full_name_msg = (
             'Ошибка! '
-            f"Точно применять скрипт для него: '{last_name}'?"
+            f"Точно применять скрипт для него: '{full_name}'?"
         )
-        return invalid_last_name_msg
+        return invalid_full_name_msg
 
     return schoolkid
 
@@ -83,11 +99,11 @@ def create_commendation(schoolkid, subjects_name):
 
 
 def main():
+    parser = create_parser()
+    args = parser.parse_args()
+    full_name, subject = ' '.join(args.full_name), *args.subject
 
-    last_name = 'Фролов Иван'
-    subject = 'Музыка'
-
-    schoolkid = get_schoolkid(last_name)
+    schoolkid = get_schoolkid(full_name)
 
     if isinstance(schoolkid, Schoolkid):
         print(fix_marks(schoolkid))
